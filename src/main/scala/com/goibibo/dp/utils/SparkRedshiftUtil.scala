@@ -81,8 +81,8 @@ def getSchema = StructType(Array(
 
 val rddData = sc.parallelize(Seq(row1,row2))
 val df = sqlContext.createDataFrame(rddData, getSchema)
-val redshiftUrl = "jdbc:redshift://redshift_host:5439/goibibo"
-val tempS3Location = "s3a://.../redshift_upload/"
+val redshiftUrl = "jdbc:redshift://host_name:5439/goibibo"
+val tempS3Location = "s3a://S3_bucket/redshift_upload/"
 val writeMode = "overwrite"
 val tableName = "testdp.test1"
 val redshiftConf = RedshiftWriterSettings(redshiftUrl,tempS3Location,writeMode,tableName,None)

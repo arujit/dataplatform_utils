@@ -54,7 +54,8 @@ object JdbcReader {
     */
     case class InternalConfig(incrementalUpdateFields: Option[FieldNamesWithRange],
                               partitionSettings: PartitionSettings = PartitionSettings(),
-                              whereCondition: Option[String] = None)
+                              whereCondition: Option[String] = None,
+                              selectColumns: Option[List[String]] = None)
 
     def getDataFrame(sqlContext: SQLContext, mysqlConfig: DBConfiguration, internalConfig: InternalConfig): DataFrame = {
 
@@ -68,13 +69,17 @@ object JdbcReader {
         properties.setProperty("user", mysqlConfig.userName)
         properties.setProperty("password", mysqlConfig.password)
 
-        sqlContext.read.
+        val df = sqlContext.read.
                 option("driver", "com.mysql.jdbc.Driver").
-                option("fetchSize", Integer.MIN_VALUE.toString).
-                option("fetchsize", Integer.MIN_VALUE.toString).
                 option("user", mysqlConfig.userName).
                 option("password", mysqlConfig.password).
                 jdbc(getJDBCUrl(mysqlConfig), mysqlConfig.tableName, partitions.toArray, properties)
+        if (internalConfig.selectColumns.isDefined) {
+            val columns: List[String] = internalConfig.selectColumns.get
+            df.select(columns.head, columns.tail: _*)
+        }
+        else
+            df
     }
 
     case class ConsumerGroupConfig(consumerGroup: String, zkUrl: String, incrementalUpdateFields: FieldNamesWithRange)
@@ -403,7 +408,8 @@ object JdbcReader {
                 s"'${mysqlDBConf.db}' AND table_name = '${mysqlDBConf.tableName}'"
         val result: ResultSet = con.createStatement().executeQuery(query)
         val avgSize: Long = Try {
-            result.next; result.getLong(1)
+            result.next;
+            result.getLong(1)
         }.getOrElse(0)
         Try {
             result.close
@@ -413,3 +419,4 @@ object JdbcReader {
 
     val defaultOffsetValue = ""
 }
+

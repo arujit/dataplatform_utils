@@ -1,7 +1,9 @@
 package com.goibibo.dp.utils
+import org.slf4j.{Logger, LoggerFactory}
+import java.util.concurrent.{CountDownLatch,TimeUnit}
 
 import org.apache.zookeeper.ZooKeeper
-import org.slf4j.{Logger, LoggerFactory}
+
 /*
 //Usage: 
 import com.goibibo.dp.utils._
@@ -28,56 +30,35 @@ object AppLock {
 		else {
 			implicit val zk = zkO.get
 			//Let us create appLocation node if it does not exist
-			ZkUtils.createPersistentNode(appLocation,"", failSilently = true)
+			ZkUtils.createPersistentNode(appLocation,"", true)
 			ZkUtils.getChildren(appLocation) match {
-				case None =>
-                    ZkUtils.close
-                    None
-                case Some(children:Seq[String]) =>
-                    if(children.isEmpty) {
-                        //TODO: Send a metric
-                        logger.info("Found no previous application running!, Good to go!")
-                        ZkUtils.createEphemeralSequentialNode(appLocation + "/hotelEtlApp", new java.sql.Timestamp(System.currentTimeMillis).toString)
-                        if(ZkUtils.getChildren(appLocation).size > 1) {
-                            logger.warn("One etl-application is already running, Exit the app")
-                            ZkUtils.close
-                            None
-                        } else {
-                            Some(zk)
-                        }
-
-                    } else {
-                        //TODO: Send a metric
-                        logger.warn("One etl-application is already running, Exit the app")
-                        ZkUtils.close
-                        None
-                    }
-                    // else if (children.size == 1) {
-
-                    // 	logger.warn("Other app is running, Let us wait for it to complete")
-                    // 	ZkUtils.createEphemeralSequentialNode(appLocation + "/hotelEtlApp","")
-
-                    // 	val connSignal = new CountDownLatch(1)
-                    // 	val nodePath = appLocation + "/" + children(0)
-
-                    // 	ZkUtils.callbackWhenNodeGetsDeleted(nodePath, () => {
-                    // 		logger.info("Previous app stopped it's execution, Starting the app now")
-                    // 		connSignal.countDown
-                    // 	})
-                    // 	if( connSignal.await(timeoutMs, TimeUnit.MILLISECONDS) ) {
-                    // 		//TODO: Send total time spent in waiting as a metric
-                    // 		Some(zk)
-                    // 	}
-                    // 	else {
-                    // 		//TODO: Send metric
-                    // 		ZkUtils.close
-                    // 		logger.warn(s"Lock timedout ${timeoutMs} ")
-                    // 		None
-                    // 	}
-                    // }
-            }
+				case None => { 
+					ZkUtils.close
+					None 
+				}
+				case Some(children:Seq[String]) => {
+					if(children.size == 0) { 
+						//TODO: Send a metric
+						logger.info("Found no previous application running!, Good to go!")
+						ZkUtils.createEphemeralSequentialNode(appLocation + "/hotelEtlApp",(new java.sql.Timestamp(System.currentTimeMillis)).toString)
+						if(ZkUtils.getChildren(appLocation).size > 1) {
+							logger.warn("One etl-application is already running, Exit the app")
+							ZkUtils.close
+							None
+						} else {
+							Some(zk) 	
+						}
+						
+					} else {
+						//TODO: Send a metric
+						logger.warn("One etl-application is already running, Exit the app")
+						ZkUtils.close
+						None
+					} 
+				}
+			}
 		}
 	}
 	
-	def unlock(zk:Option[ZooKeeper]): Unit = zk.foreach(ZkUtils.close(_))
+	def unlock(zk:Option[ZooKeeper]) = zk.foreach(ZkUtils.close(_))
 }
