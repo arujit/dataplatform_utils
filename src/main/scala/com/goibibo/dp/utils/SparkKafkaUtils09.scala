@@ -28,7 +28,9 @@ object SparkKafkaUtils09 {
   private val logger = LoggerFactory.getLogger(SparkKafkaUtils09.getClass)
 
   private def createOffsetRange(kafkaBrokers: String, topics: Seq[String],
-                                consumerGroup: String, maxMessagesPerPartition: Option[Int], readFrom: String = READ_FROM_COMMITTED): (Seq[OffsetRange], KOffsets, Boolean) = {
+                                consumerGroup: String, maxMessagesPerPartition: Option[Int], 
+                                readFrom: String = READ_FROM_COMMITTED): (Seq[OffsetRange], KOffsets, Boolean) = {
+
     var isReadRequired = false
     val kafkaConfig = KfUtils09.createKafkaConfig(kafkaBrokers, consumerGroup)
     val topicsNames = topics.asJava
@@ -105,7 +107,6 @@ object SparkKafkaUtils09 {
   (kafkaBrokers: String, topics: Seq[String], consumerGroup: String,
    sc: SparkContext, maxMessagesPerPartition: Option[Int] = None): (RDD[(K, V)], KOffsets) =
   {
-
     val (offsets, latestOffsets, isReadRequired) = createOffsetRange(kafkaBrokers, topics, consumerGroup, maxMessagesPerPartition)
     val kafkaParams = Map("bootstrap.servers" -> kafkaBrokers.asInstanceOf[Object],
       "key.deserializer" ->  implicitly[ClassTag[KD]].runtimeClass.getName.asInstanceOf[Object],

@@ -419,4 +419,3 @@ object JdbcReader {
 
     val defaultOffsetValue = ""
 }
-

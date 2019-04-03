@@ -172,20 +172,3 @@ object ZkUtils {
         }
     } 
 }
-
-/*
-import com.goibibo.dp.utils.ZkUtils
-implicit val zk = ZkUtils.connect("127.0.0.1:2181/apps/etl_data").get
-ZkUtils.createEphemeralNode("/nodeE","ephemeral node")
-ZkUtils.createEphemeralSequentialNode("/nodeES","ephemeral sequential node 1")
-ZkUtils.createEphemeralSequentialNode("/nodeES","ephemeral sequential node 2")
-ZkUtils.createPersistentNode("/etl_production","persistent /etl_production")
-ZkUtils.createPersistentSequentialNode("/etl_production/nodeEP","persistent ephemeral node in /etl_production 1")
-ZkUtils.createPersistentSequentialNode("/etl_production/nodeEP","persistent ephemeral node in /etl_production 2")
-ZkUtils.close
-implicit val zk = ZkUtils.connect("127.0.0.1:2181/etl_data").get
-ZkUtils.getChildren("/etl_production")
-ZkUtils.getChildren("/etl_production").get.foreach{ nodeName => ZkUtils.deleteNode("/etl_production/" + nodeName) }
-ZkUtils.deleteNode("/etl_production")
-ZkUtils.close
-*/

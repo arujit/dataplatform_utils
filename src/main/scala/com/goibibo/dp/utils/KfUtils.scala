@@ -1,16 +1,23 @@
 package com.goibibo.dp.utils
 
-import kafka.api.PartitionOffsetRequestInfo
-import kafka.common.TopicAndPartition
-import kafka.javaapi._
-import kafka.javaapi.consumer.SimpleConsumer
+//import kafka.api.PartitionOffsetRequestInfo
+import org.apache.kafka.common.TopicPartition
+//import kafka.javaapi._
+//import kafka.javaapi.consumer.SimpleConsumer
 import org.apache.zookeeper.ZooKeeper
-
 import scala.collection.JavaConverters._
+
 
 object KfUtils {
     type KOffsets = Seq[(TopicAndPartition, Long)]
+    case class TopicAndPartition(topic: String, partition: Int) {
 
+        def this(topicPartition: TopicPartition) = this(topicPartition.topic, topicPartition.partition)
+
+        override def toString: String = s"$topic-$partition"
+  }
+
+/*
     def createKafkaConsumer(broker: String, port: Int = 9092, clientId: String = "client"): SimpleConsumer = {
         val socketTimeout = 100000
         val socketBufferSize = 64 * 1024
@@ -55,7 +62,7 @@ object KfUtils {
                         getCommitedOffsetsInternal(consumerGroup, topicsPartitions).toMap
                 ).toSeq
     }
-
+*/
     def commitOffsets(consumerGroup: String,
                       topicsPartitions: KOffsets)(implicit zk: ZooKeeper): Unit = {
 
